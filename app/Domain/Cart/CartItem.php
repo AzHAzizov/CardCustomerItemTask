@@ -2,17 +2,16 @@
 
 namespace App\Domain\Cart;
 
-use App\Domain\Product\Product;
+use App\Http\Dto\ProductDto;
 
 readonly class CartItem
 {
     public function __construct(
-        public Product $product,
-        public int $quantity
+        public ProductDto $product,
     ) {}
 
     public function totalPrice(): float
     {
-        return $this->product->price * $this->quantity;
+        return $this->product->price * $this->product->quantity;
     }
 }

@@ -5,8 +5,9 @@ namespace App\Domain\Product;
 readonly class Product
 {
     public function __construct(
-        public string $id,
+        public int $id,
         public string $name,
-        public float $price
+        public float $price,
+        public int $quantity,
     ) {}
 }

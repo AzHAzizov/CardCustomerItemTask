@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Application\Service\CartService;
-use App\Http\Dto\AddProductDto;
-use App\Http\Dto\RemoveProductDto;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Factory as ValidatorFactory;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Validation\Factory as ValidatorFactory;
+use App\Application\Service\CartService;
+use App\Http\Dto\ProductDto;
+use App\Http\Dto\RemoveProductDto;
 
 class CartController extends Controller
 {
@@ -20,28 +19,30 @@ class CartController extends Controller
     public function add(Request $request, ValidatorFactory $validator): JsonResponse
     {
         $validated = $validator->make($request->all(), [
-            'id' => 'required|string',
-            'name' => 'required|string',
-            'price' => 'required|numeric',
+            'product_id' => 'required|string|exists:products,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
         if ($validated->fails()) {
             return response()->json([
-                'errors' => $validated->errors()
+                'errors' => $validated->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $data = $validated->validated();
+        try {
+            $data = $validated->validated();
 
-        $this->service->addProduct(
-            new AddProductDto(
-                $data['id'],
-                $data['name'],
-                (float) $data['price'],
-                (int) $data['quantity']
-            )
-        );
+            $this->service->addProduct(
+                new ProductDto(
+                    productId: $data['product_id'],
+                    quantity: (int) $data['quantity']
+                )
+            );
+        } catch (\DomainException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         return response()->json(['message' => 'Product added to cart']);
     }
@@ -49,7 +50,7 @@ class CartController extends Controller
     public function remove(Request $request, ValidatorFactory $validator): JsonResponse
     {
         $validated = $validator->make($request->all(), [
-            'productId' => 'required|string',
+            'product_id' => 'required|string',
         ]);
 
         if ($validated->fails()) {
@@ -60,7 +61,7 @@ class CartController extends Controller
 
         try {
             $this->service->removeProduct(
-                new RemoveProductDto($validated->validated()['productId'])
+                new RemoveProductDto($validated->validated()['product_id'])
             );
         } catch (\DomainException $e) {
             return response()->json([
@@ -70,7 +71,6 @@ class CartController extends Controller
 
         return response()->json(['message' => 'Product removed from cart']);
     }
-
 
     public function get(): JsonResponse
     {

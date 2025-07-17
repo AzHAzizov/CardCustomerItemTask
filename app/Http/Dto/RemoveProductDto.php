@@ -5,6 +5,6 @@ namespace App\Http\Dto;
 readonly class RemoveProductDto
 {
     public function __construct(
-        public string $productId
+        public int $productId
     ) {}
 }

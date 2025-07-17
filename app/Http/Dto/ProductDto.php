@@ -2,12 +2,12 @@
 
 namespace App\Http\Dto;
 
-readonly class AddProductDto
+readonly class ProductDto
 {
-    public function __construct(
-        public string $id,
+     public function __construct(
+        public int $id,
         public string $name,
         public float $price,
-        public int $quantity
+        public int $quantity,
     ) {}
 }

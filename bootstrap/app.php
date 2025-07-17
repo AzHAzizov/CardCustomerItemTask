@@ -112,27 +112,32 @@ $app->router->group([
     require __DIR__.'/../routes/web.php';
 });
 
-$app->configure('session');
+$app->configure('database');
 
-$app->register(Illuminate\Session\SessionServiceProvider::class);
-$app->singleton(Illuminate\Session\SessionManager::class, function ($app) {
-    return $app['session'];
-});
+$app->register(Illuminate\Database\DatabaseServiceProvider::class);
+
+$app->singleton(
+    Illuminate\Contracts\Validation\Factory::class,
+    function ($app) {
+        $factory = new Illuminate\Validation\Factory($app['translator'], $app);
+        $factory->setPresenceVerifier(new Illuminate\Validation\DatabasePresenceVerifier($app['db']));
+        return $factory;
+    }
+);
 
 $app->bind(
     App\Repositories\CartRepositoryInterface::class,
-    App\Repositories\SessionCartRepository::class
+    App\Repositories\CartRepository::class
 );
 
 $app->bind(
     App\Repositories\CustomerRepositoryInterface::class,
-    App\Repositories\InMemoryCustomerRepository::class
+    App\Repositories\CustomerRepository::class
 );
 
 $app->singleton(App\Application\Service\CartService::class, function ($app) {
     return new App\Application\Service\CartService($app->make(App\Repositories\CartRepositoryInterface::class));
 });
-
 
 $app->withFacades();
 $app->withEloquent();

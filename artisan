@@ -28,6 +28,8 @@ $app = require __DIR__.'/bootstrap/app.php';
 |
 */
 
+
+
 $kernel = $app->make(
     'Illuminate\Contracts\Console\Kernel'
 );
