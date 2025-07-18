@@ -11,17 +11,19 @@ use Illuminate\Validation\Factory as ValidatorFactory;
 use App\Application\Service\CartService;
 use App\Http\Dto\ProductDto;
 use App\Http\Dto\RemoveProductDto;
+use App\Repositories\ProductRepository;
 
 class CartController extends Controller
 {
     public function __construct(private readonly CartService $service) {}
 
-    public function add(Request $request, ValidatorFactory $validator): JsonResponse
+    public function add(Request $request, ValidatorFactory $validator, ProductRepository $productRepository): JsonResponse
     {
         $validated = $validator->make($request->all(), [
-            'product_id' => 'required|string|exists:products,id',
+            'product_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
         ]);
+
 
         if ($validated->fails()) {
             return response()->json([
@@ -29,15 +31,23 @@ class CartController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        try {
+        try {            
             $data = $validated->validated();
+            $product = $productRepository->getOneById((int)$data['product_id']);
+            
+            if (!$product) {
+                throw new \DomainException('Product not found.');
+            }
 
-            $this->service->addProduct(
-                new ProductDto(
-                    productId: $data['product_id'],
-                    quantity: (int) $data['quantity']
-                )
+
+            $dto = new ProductDto(
+                id: (int) $product->id,
+                name: $product->name,
+                price: (float) $product->price,
+                quantity: (int) $data['quantity']
             );
+
+            $this->service->addProduct($dto);
         } catch (\DomainException $e) {
             return response()->json([
                 'error' => $e->getMessage(),
@@ -51,6 +61,7 @@ class CartController extends Controller
     {
         $validated = $validator->make($request->all(), [
             'product_id' => 'required|string',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         if ($validated->fails()) {
@@ -60,8 +71,12 @@ class CartController extends Controller
         }
 
         try {
+            $data = $validated->validated();
+            $product_id = (int) $data['product_id'];
+            $quantity = (int) $data['quantity'];
+
             $this->service->removeProduct(
-                new RemoveProductDto($validated->validated()['product_id'])
+                new RemoveProductDto($product_id, $quantity)
             );
         } catch (\DomainException $e) {
             return response()->json([
@@ -69,7 +84,7 @@ class CartController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json(['message' => 'Product removed from cart']);
+        return response()->json(['message' => 'Cart was updated']);
     }
 
     public function get(): JsonResponse

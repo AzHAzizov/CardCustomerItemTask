@@ -15,14 +15,12 @@ class CartRepository implements CartRepositoryInterface
         EloquentCartItem::updateOrCreate(
             ['product_id' => $product->id],
             [
-                'name' => $product->name,
-                'price' => $product->price,
                 'quantity' => $quantity,
             ]
         );
     }
 
-    public function removeProduct(int $productId): void
+    public function removeProduct(int $productId, int $quantity): void
     {
         $item = EloquentCartItem::where('product_id', $productId)->first();
 
@@ -30,7 +28,12 @@ class CartRepository implements CartRepositoryInterface
             throw new \DomainException("Product with ID '$productId' not found in cart.");
         }
 
-        $item->delete();
+        if ($item->quantity <= $quantity) {
+            $item->delete();
+        } else {
+            $item->quantity -= $quantity;
+            $item->save();
+        }
     }
 
     public function allItems(): array

@@ -8,7 +8,7 @@ use App\Domain\Cart\CartItem;
 interface CartRepositoryInterface
 {
     public function addProduct(Product $product, int $quantity): void;
-    public function removeProduct(int $productId): void;
+    public function removeProduct(int $productId, int $quantity): void;
     /** @return CartItem[] */
     public function allItems(): array;
 }

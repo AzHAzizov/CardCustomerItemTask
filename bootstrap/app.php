@@ -91,7 +91,7 @@ $app->configure('app');
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
@@ -112,9 +112,12 @@ $app->router->group([
     require __DIR__.'/../routes/web.php';
 });
 
+$app->withFacades();
+$app->withEloquent();
 $app->configure('database');
+$app->register(App\Providers\AppServiceProvider::class);
 
-$app->register(Illuminate\Database\DatabaseServiceProvider::class);
+
 
 $app->singleton(
     Illuminate\Contracts\Validation\Factory::class,
@@ -139,7 +142,5 @@ $app->singleton(App\Application\Service\CartService::class, function ($app) {
     return new App\Application\Service\CartService($app->make(App\Repositories\CartRepositoryInterface::class));
 });
 
-$app->withFacades();
-$app->withEloquent();
 
 return $app;

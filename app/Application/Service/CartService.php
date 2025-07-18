@@ -21,7 +21,7 @@ readonly class CartService
 
     public function removeProduct(RemoveProductDto $dto): void
     {
-        $this->repository->removeProduct($dto->productId);
+        $this->repository->removeProduct($dto->productId, $dto->quantity);
     }
 
     public function listItems(): array
