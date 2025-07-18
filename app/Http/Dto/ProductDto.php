@@ -9,5 +9,6 @@ readonly class ProductDto
         public string $name,
         public float $price,
         public int $quantity,
+        public ?int $cart_id,
     ) {}
 }

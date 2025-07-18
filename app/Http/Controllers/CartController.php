@@ -21,6 +21,7 @@ class CartController extends Controller
     {
         $validated = $validator->make($request->all(), [
             'product_id' => 'required|integer',
+            'cart_id' => 'integer',
             'quantity' => 'required|integer|min:1',
         ]);
 
@@ -44,7 +45,8 @@ class CartController extends Controller
                 id: (int) $product->id,
                 name: $product->name,
                 price: (float) $product->price,
-                quantity: (int) $data['quantity']
+                quantity: (int) $data['quantity'],
+                cart_id: (int) $data['cart_id'] ?? null
             );
 
             $this->service->addProduct($dto);
@@ -60,7 +62,8 @@ class CartController extends Controller
     public function remove(Request $request, ValidatorFactory $validator): JsonResponse
     {
         $validated = $validator->make($request->all(), [
-            'product_id' => 'required|string',
+            'product_id' => 'required|integer',
+            'cart_id' => 'integer',
             'quantity' => 'required|integer|min:1',
         ]);
 
@@ -76,7 +79,7 @@ class CartController extends Controller
             $quantity = (int) $data['quantity'];
 
             $this->service->removeProduct(
-                new RemoveProductDto($product_id, $quantity)
+                new RemoveProductDto(productId: $product_id, quantity: $quantity,  cart_id: $data['cart_id'] ?? null)
             );
         } catch (\DomainException $e) {
             return response()->json([
@@ -90,17 +93,6 @@ class CartController extends Controller
     public function get(): JsonResponse
     {
         $items = $this->service->listItems();
-
-        $response = array_map(function ($item) {
-            return [
-                'id' => $item->product->id,
-                'name' => $item->product->name,
-                'price' => $item->product->price,
-                'quantity' => $item->quantity,
-                'totalPrice' => $item->totalPrice(),
-            ];
-        }, $items);
-
-        return response()->json($response);
+        return response()->json($items);
     }
 }

@@ -8,6 +8,7 @@ use App\Repositories\CartRepositoryInterface;
 use App\Domain\Product\Product;
 use App\Http\Dto\ProductDto;
 use App\Http\Dto\RemoveProductDto;
+use App\Models\Cart;
 
 readonly class CartService
 {
@@ -16,16 +17,24 @@ readonly class CartService
     public function addProduct(ProductDto $productDto): void
     {
         $product = new Product($productDto->id, $productDto->name, $productDto->price, $productDto->quantity);
-        $this->repository->addProduct($product, $productDto->quantity);
+        $this->repository->addProduct($product, $productDto->quantity, $productDto->cart_id);
     }
 
     public function removeProduct(RemoveProductDto $dto): void
     {
-        $this->repository->removeProduct($dto->productId, $dto->quantity);
+        $this->repository->removeProduct($dto->productId, $dto->quantity, $dto->cart_id);
     }
 
     public function listItems(): array
     {
         return $this->repository->allItems();
+    }
+
+    public function createCart(): int
+    {
+        $cart = new Cart();
+        $this->repository->save($cart);
+
+        return $cart->id;
     }
 }
